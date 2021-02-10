@@ -27,6 +27,29 @@ const password = Joi.string().trim().required()
     'any.required': 'password is required',
 });
 
+const phone = Joi.string().trim().max(11).required().messages({
+  'string.base': 'phone is required',
+  'string.empty': 'phone cannot be empty',
+  'string.min': 'phone cannot be empty',
+  'any.required': 'phone is required'
+});
+
+const userId = Joi.string().trim().required().messages({
+  'string.base': 'Please provide a valid user id for ownerId',
+  'string.empty': 'userId cannot be empty',
+  'string.min': 'userId cannot be empty',
+  'any.required': 'userId is required'
+});
+
+const ownerId = Joi.string().trim().required().messages({
+  'string.base': 'ownerId is required',
+  'string.empty': 'ownerId cannot be empty',
+  'string.min': 'ownerId cannot be empty',
+  'any.required': 'ownerId is required'
+});
+
+const group = Joi.string().trim();
+
 export const signUp = Joi.object().keys({
   email, username, name, password,
 });
@@ -39,16 +62,29 @@ export const reset = Joi.object().keys({
   email, password,
 });
 
+export const createContact = Joi.object().keys({
+  phone, userId, ownerId, group,
+});
+
+export const updateContact = Joi.object().keys({
+  userId, ownerId, group,
+});
 
 export default  async (req, res, next) => {
   const routes = {
     '/auth/signup': signUp,
     '/auth/login': login,
     '/auth/forgotPassword': reset,
+    '/contact': createContact,
+    updateContact
   }
-  
   try {
-    const validate = await routes[req.url].validate(req.body, { abortEarly: false });
+    let validate
+    if (req.url === '/contact' && req.method === 'PUT') {
+      validate = await routes.updateContact.validate(req.body, { abortEarly: false });
+    } else {
+      validate = await routes[req.url].validate(req.body, { abortEarly: false });
+    }
     if (validate.error) return res.status(400).json({
       message:  validate.error.details[0].message, 
     });
@@ -57,4 +93,3 @@ export default  async (req, res, next) => {
     console.log(err.error)
   }
 }
-
