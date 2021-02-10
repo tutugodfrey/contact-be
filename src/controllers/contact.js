@@ -5,13 +5,13 @@
 
 export default {
     // get all contacts for a user
-    all,
+    // all,
     // get a single contact
-    get,
+    // get,
     // create a single contact
-    create,
+    // create,
     // update a single contact
-    update,
+    // update,
     // remove a single contact
-    remove
+    // remove
 }
