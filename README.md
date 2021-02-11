@@ -85,7 +85,7 @@ The samples below shows how to make http request to the server
     "name": "John Doe",
     "username": "johndoe",
     "email": "johndoe@emai.com",
-    "password": "johndoe-pw"
+    "password": "Aa@11234"
 }
 ```
 **OUTPUT**
@@ -106,7 +106,7 @@ The samples below shows how to make http request to the server
 ```
 {
     "username": "johndoe",
-    "password": "johndoe-pw"
+    "password": "Aa@11234"
 }
 ```
 **OUTPUT**
@@ -126,7 +126,7 @@ The samples below shows how to make http request to the server
 ```
 {
     "email": "johndoe@emai.com",
-    "password": "johndoe-pw-new"
+    "password": "Aa@11234-new"
 }
 ```
 **OUTPUT**
