@@ -1,23 +1,6 @@
 import User from '../entities/user';
 import Contact from '../entities/contact';
-import logger from '../utils/logger';
-
-// Return selected fields from result of DB query
-const returnSuccess = (data, fields, res) => {
-  if (Array.isArray(data)) {
-    const result = data.map(each => {
-      const result = {};
-      fields.forEach(field => result[field] = each[field]);
-      return result;
-    });
-  
-    return res.json(result);
-  }
-
-  const result = {};
-  fields.forEach(field => result[field] = data[field]);
-  return res.json(result);
-}
+import { returnSuccess, handleFailure } from '../utils/helper'
 
 /**
  * A simple CRUD controller for contacts
@@ -28,15 +11,18 @@ export default {
   all: async (req, res) => {
     try {
       const contacts = await Contact.find();
-      const fields =
-        [ 'id', 'userId', 'ownerId', 'phone', 'group', 'createdAt', 'updatedAt' ];
+      const fields = [
+        'id', 'userId', 'ownerId', 'phone', 'group', 'createdAt', 'updatedAt'
+      ];
       res.statusCode = 200;
-      if (contacts && contacts[0].phone) return returnSuccess(contacts, fields, res);
-      return res.status(500).json({ message: 'An error occurred, please try again later' });
+      if (contacts && contacts[0].phone)
+        return returnSuccess(contacts, fields, res);
+
+      return res.status(500).json({
+        message: 'An error occurred, please try again later'
+      });
     } catch(err) {
-      logger.error('Error occurred while attempting to serve a request:');
-	    logger.error(err);
-      return res.status(500).json({ message: err.message });
+      return handleFailure(err, res);
     }
   },
   
@@ -50,14 +36,7 @@ export default {
       res.statusCode = 200;
       if (contact && contact.phone) return returnSuccess(contact, fields, res);
     } catch(err) {
-      if (err.message.includes('Cast to ObjectId failed for value'))
-        return res.status(404).json({
-          message: 'Contact detail not found',
-        });
-
-      logger.error('Error occurred while attempting to serve a request:');
-	    logger.error(err);
-      return res.status(500).json({ message: err.message });
+      return handleFailure(err, res, 'Contact detail not found', 404);
     }
   },
   
@@ -83,45 +62,36 @@ export default {
         message: 'An error occurred, please try again later',
       });
     } catch(err) {
-      if (err.message.includes('Cast to ObjectId failed for value'))
-        return res.status(400).json({
-          message: 'Please provide a valid user id for ownerId',
-        });
-
-      if (err.message.includes('duplicate'))
-        return res.status(409).json({
-          message: 'Contact detail already exist',
-        });
-
-        logger.error('Error occurred while attempting to serve a request:');
-		    logger.error(err);
-        return res.status(500).json({
-          message: err.message,
-        });
+      const message = 'Please provide a valid user id for ownerId';
+      return handleFailure(err, res, message, 400);
     }
   },
 
   // update a single contact
   update: async (req, res) => {
-    const { userId, ownerId, phone, group } = req.body;
-    const { id } = req.params;
+    const { id, userId, ownerId, phone, group } = req.body;
     try {
       const contact = await Contact.findOneAndUpdate(
-        {id, userId }, { phone, group, ownerId },
+        { _id: id, userId }, { phone, group, ownerId },
         {
         new: true,
         omitUndefined: true,
         });
-      if (contact) {
-        const fields = [ 'id', 'userId', 'ownerId', 'phone', 'group', 'createdAt', 'updatedAt' ];
-        res.statusCode = 200;
-        if (contact && contact.phone) return returnSuccess(contact, fields, res);
-    }
-      return res.status(500).json({ message: 'An error occurred! Please try again later' });
+      
+      if (!contact) 
+        return res.status(404).json({
+          message: 'Contact not found! No action taken'
+        });
+
+      const fields = [ 
+        'id', 'userId', 'ownerId', 'phone', 'group', 'createdAt', 'updatedAt'
+      ];
+      res.statusCode = 200;
+      return returnSuccess(contact, fields, res);
+      
     } catch(err) {
-      logger.error('Error occurred while attempting to serve a request:');
-	    logger.error(err);
-      return res.status(500).json({ message: err.message });
+      const message = 'Contact not found! No action taken';
+      return handleFailure(err, res, message, 404)
     }
   },
   
@@ -139,9 +109,7 @@ export default {
         message: 'Contact not found! No action taken',
       });
     } catch(err) {
-      logger.error('Error occurred while attempting to serve a request:');
-	    logger.error(err);
-      return res.status(500).json({ message: err.message });
+      return handleFailure(err, res);
     }
   }
 }

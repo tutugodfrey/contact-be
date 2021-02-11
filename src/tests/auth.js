@@ -9,13 +9,15 @@ const userObj = {
     name: 'godfrey',
     email: 'johndoe@email.com',
     username: 'johndoe',
-    password: 'Aa!11234',
+    password: 'Aa@11234',
 }
 const userLoginObj = {
   username: 'johndoe',
-  password: 'Aa!11234',
+  password: 'Aa@11234',
 }
 const createdUser = {};
+const passwordPatternMsg = 'password must be at least 6 character long, ' +
+  'contain alphanumeric and at least one specail characters "@$!%*#?&"';
 
 describe('Testing Auth user', () => {
   before(async () => {
@@ -110,8 +112,6 @@ describe('Testing Auth user', () => {
     it('User not signup if password is does not match required pattern', () => {
       const user = { ...userObj };
       user.password = 'Aa112';
-      const message =
-        'password must be at least 6 character long, contain alphanumeric and specail characters';
       return chai.request(app)
         .post('/auth/signup')
         .send(user)
@@ -120,7 +120,7 @@ describe('Testing Auth user', () => {
           expect(res.status).to.equal(400);
           expect(res.body)
             .to.have.property('message')
-            .to.equal(message);
+            .to.equal(passwordPatternMsg);
         })
     });
 
@@ -297,7 +297,7 @@ describe('Testing Auth user', () => {
 
     it('User not login without a valid password', () => {
       const user = { ...userLoginObj };
-      user.password = 'invalidpassword'
+      user.password = 'Aa!1@3456'
       return chai.request(app)
         .post('/auth/login')
         .send(user)
@@ -387,12 +387,28 @@ describe('Testing Auth user', () => {
         });
     });
 
-    it('should not delete contact that does not exist', () => {
+    it('should not update password that does not match required pattern', () => {
       return chai.request(app)
         .post('/auth/forgotPassword')
         .send({
           email: createdUser.email,
           password: 'john-newpasswd',
+        })
+        .then(res => {
+          const result = { ...res.body };
+          expect(res.status).to.equal(400);
+          expect(result)
+            .to.have.property('message')
+            .to.equal(passwordPatternMsg);
+        });
+    });
+
+    it('should update user with valid email and required password pattern', () => {
+      return chai.request(app)
+        .post('/auth/forgotPassword')
+        .send({
+          email: createdUser.email,
+          password: 'AA@@123new',
         })
         .then(res => {
           const result = { ...res.body };

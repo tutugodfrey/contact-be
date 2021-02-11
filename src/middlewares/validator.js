@@ -1,5 +1,6 @@
 import Joi from 'joi';
 import logger from '../utils/logger'
+import { handleFailure } from '../utils/helper';
 
 const email = Joi.string().trim().email().required().messages({ 
   'string.base': `email is required`,
@@ -18,13 +19,15 @@ const name = Joi.string().trim().max(30).required().messages({
   'string.empty': 'name cannot be empty',
   'any.required': 'name is required',
 });
+
+const message = 'password must be at least 6 character long, ' +
+  'contain alphanumeric and at least one specail characters "@$!%*#?&"';
 const password = Joi.string().trim().required()
-  .regex(/^(?=\S*[a-z])(?=\S*[A-Z)(?=\S*\d)(?=\S*[^\w\s])\S{6,30}$/).messages({
+  .regex(/^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{6,}$/).messages({
     'string.base': 'password is required',
     'any.empty': 'password cannot be empty',
     'string.empty': 'password cannot be empty',
-    'string.pattern.base':
-      'password must be at least 6 character long, contain alphanumeric and specail characters',
+    'string.pattern.base': message,
     'any.required': 'password is required',
 });
 
@@ -36,7 +39,7 @@ const phone = Joi.string().trim().max(11).required().messages({
 });
 
 const userId = Joi.string().trim().required().messages({
-  'string.base': 'Please provide a valid user id for ownerId',
+  'string.base': 'userId is required',
   'string.empty': 'userId cannot be empty',
   'string.min': 'userId cannot be empty',
   'any.required': 'userId is required'
@@ -47,6 +50,13 @@ const ownerId = Joi.string().trim().required().messages({
   'string.empty': 'ownerId cannot be empty',
   'string.min': 'ownerId cannot be empty',
   'any.required': 'ownerId is required'
+});
+
+const id = Joi.string().trim().required().messages({
+  'string.base': 'id is required',
+  'string.empty': 'id cannot be empty',
+  'string.min': 'id cannot be empty',
+  'any.required': 'id is required'
 });
 
 const group = Joi.string().trim();
@@ -67,8 +77,9 @@ export const createContact = Joi.object().keys({
   phone, userId, ownerId, group,
 });
 
+
 export const updateContact = Joi.object().keys({
-  userId, ownerId, group,
+  id, userId
 });
 
 // validate necessary fields
@@ -83,8 +94,9 @@ export default  async (req, res, next) => {
   try {
     let validate
     if (req.url === '/contact' && req.method === 'PUT') {
+      const { id, userId } = req.body;
       validate = await mapRoutes.updateContact.validate(
-        req.body, { abortEarly: false }
+        { id, userId }, { abortEarly: false }
       );
     } else {
       validate = await mapRoutes[req.url].validate(
@@ -96,8 +108,6 @@ export default  async (req, res, next) => {
     });
     return next();
   } catch(err) {
-    logger.error('Error occurred while validating user data:');
-		logger.error(err);
-    return res.status(500).json({ message: err.message });
+    return handleFailure(err, res);
   }
 }

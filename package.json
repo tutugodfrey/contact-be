@@ -4,7 +4,7 @@
 	"description": "Backend rest service for a contact/address book app",
 	"scripts": {
 		"clean": "rimraf 'dist'",
-		"start": "cd dist && node server.js",
+		"start": "cp .env dist; cd dist && node server.js",
 		"build": "babel src --out-dir dist",
 		"watch": "babel -w src --out-dir dist",
 		"test": "mocha dist/tests --exit"

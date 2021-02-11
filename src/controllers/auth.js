@@ -1,6 +1,6 @@
 import User from '../entities/user';
-import logger from '../utils/logger';
-import authMiddleware from '../middlewares/auth'
+import authMiddleware from '../middlewares/auth';
+import { handleFailure } from '../utils/helper'
 
 /**
  * Given a json request 
@@ -33,9 +33,7 @@ export const login = async (req, res) => {
 		}
 		return res.status(401).json({ message });
 	} catch(err) {
-		logger.error('Error occurred while attempting to serve a request:');
-		logger.error(err);
-		return res.status(500).json({ message: err.message });
+		return handleFailure(err, res);
 	}
 };
 /**
@@ -62,12 +60,7 @@ export const signup = async (req, res) => {
 			message: 'An error occurred! please try again later', 
 		});
 	} catch(err) {
-		if (err.message.includes('duplicate')) {
-			return res.status(409).json({ message: 'User already exists' });
-		}
-		logger.error('Error occurred while attempting to serve a request:');
-		logger.error(err);
-		return res.status(400).json({ message: err.message });
+		return handleFailure(err, res);
 	}
 	
 };
@@ -98,12 +91,10 @@ export const forgotPassword = async (req, res) => {
 			return res.status(200).json(user);
 		}
 		return res.status(500).json({
-			message: 'Unable to reset password! Please try again later'
+			message: 'Unable to reset password! Please try again later',
 		});
 	} catch(err) {
-		logger.error('Error occurred while attempting to serve a request:');
-		logger.error(err);
-		return res.status(500).json({ message: err.message });
+		return handleFailure(err, res);
 	}
 };
 
