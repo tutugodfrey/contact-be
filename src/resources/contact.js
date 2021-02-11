@@ -29,12 +29,4 @@ module.exports = app => {
     authMiddleware.authUser,
     Contact.remove
   );
-    /**
-     * Create the remaining routes
-     * get,
-     * create,
-     * delete,
-     * update,
-     * remove
-     */
 };

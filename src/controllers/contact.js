@@ -1,25 +1,28 @@
 import User from '../entities/user';
 import Contact from '../entities/contact';
 import logger from '../utils/logger';
+
+// Return selected fields from result of DB query
+const returnSuccess = (data, fields, res) => {
+  if (Array.isArray(data)) {
+    const result = data.map(each => {
+      const result = {};
+      fields.forEach(field => result[field] = each[field]);
+      return result;
+    });
+  
+    return res.json(result);
+  }
+
+  const result = {};
+  fields.forEach(field => result[field] = data[field]);
+  return res.json(result);
+}
+
 /**
  * A simple CRUD controller for contacts
  * Create the necessary controller methods 
  */
-const returnSuccess = (obj, fields, res) => {
-    if (Array.isArray(obj)) {
-      const result = obj.map(obj2 => {
-        const result = {};
-        fields.forEach(field => result[field] = obj2[field]);
-        return result;
-      })
-      return res.json(result);
-    }
-
-    const result = {};
-    fields.forEach(field => result[field] = obj[field]);
-    return res.json(result);
-}
-
 export default {
   // get all contacts for a user
   all: async (req, res) => {
@@ -32,7 +35,7 @@ export default {
       return res.status(500).json({ message: 'An error occurred, please try again later' });
     } catch(err) {
       logger.error('Error occurred while attempting to serve a request:');
-	  logger.error(err);
+	    logger.error(err);
       return res.status(500).json({ message: err.message });
     }
   },
@@ -47,8 +50,13 @@ export default {
       res.statusCode = 200;
       if (contact && contact.phone) return returnSuccess(contact, fields, res);
     } catch(err) {
-      logger.error('Error occurred while attempting to serve a request:');
-	  logger.error(err);
+      if (err.message.includes('Cast to ObjectId failed for value'))
+        return res.status(404).json({
+          message: 'Contact detail not found',
+        });
+
+      logger.error('Error occurred while attempting to serve a request:');
+	    logger.error(err);
       return res.status(500).json({ message: err.message });
     }
   },
@@ -65,7 +73,8 @@ export default {
     
       const contact = await Contact.create({ userId, phone, ownerId, group });
       if (contact && contact.phone) {
-        const fields = [ 'id', 'userId', 'ownerId', 'phone', 'group', 'createdAt', 'updatedAt' ];
+        const fields = 
+          [ 'id', 'userId', 'ownerId', 'phone', 'group', 'createdAt', 'updatedAt' ];
         res.statusCode = 201;
         if (contact && contact.phone) return returnSuccess(contact, fields, res);
       }
@@ -79,10 +88,15 @@ export default {
           message: 'Please provide a valid user id for ownerId',
         });
 
+      if (err.message.includes('duplicate'))
+        return res.status(409).json({
+          message: 'Contact detail already exist',
+        });
+
         logger.error('Error occurred while attempting to serve a request:');
-		logger.error(err);
+		    logger.error(err);
         return res.status(500).json({
-          message: 'An error occurred, please try again later',
+          message: err.message,
         });
     }
   },
@@ -106,7 +120,7 @@ export default {
       return res.status(500).json({ message: 'An error occurred! Please try again later' });
     } catch(err) {
       logger.error('Error occurred while attempting to serve a request:');
-	  logger.error(err);
+	    logger.error(err);
       return res.status(500).json({ message: err.message });
     }
   },
@@ -126,7 +140,7 @@ export default {
       });
     } catch(err) {
       logger.error('Error occurred while attempting to serve a request:');
-	  logger.error(err);
+	    logger.error(err);
       return res.status(500).json({ message: err.message });
     }
   }
