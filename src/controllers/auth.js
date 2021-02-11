@@ -73,11 +73,20 @@ export const signup = async (req, res) => {
 };
 /**
  * Implement a way to recover user accounts
+ * This implementation assume the last step for
+ * password recovery
+ * Given email and password
+ * if the email verified, the password is set
+ * A token is generated and returned along with user data
  */
 export const forgotPassword = async (req, res) => {
 	const { email, password } = req.body;
 	try {
-		const result = await User.findOneAndUpdate({ email }, { password }, { new: true, omitUndefined: true });
+		const result = await User.findOneAndUpdate(
+			{ email },
+			{ password },
+			{ new: true, omitUndefined: true },
+		);
 		if (result && result.username) {
 			const { id, name, username, email, createdAt, updatedAt } = result;
 			const user = { id, name, username, email };
