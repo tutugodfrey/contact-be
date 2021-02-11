@@ -4,7 +4,6 @@ import dotenv from 'dotenv'
 
 dotenv.config();
 mongoose.Promise = global.Promise;
-dotenv.config();
 const { DB_USER, DB_PASS, DB_HOST, DB_PORT, DB_NAME } = process.env;
 const uri = process.env.DATABASE_URL ||
 	`mongodb://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}` ||

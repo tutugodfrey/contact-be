@@ -1,10 +1,10 @@
 import Contact from '../controllers/contact';
-import contactMiddleware from '../middlewares/contact';
 import authMiddleware from '../middlewares/auth'
 import validate from '../middlewares/validator';
+
 /**
  * 
- * 
+ * Routes for creating contacts
  */
 module.exports = app => {
   app.route('/contact').get(

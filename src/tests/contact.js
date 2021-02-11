@@ -10,7 +10,7 @@ const userObj = {
   name: 'godfrey',
   email: 'johndoe@email.com',
   username: 'johndoe',
-  password: 'mypasswd',
+  password: 'Aa@11234',
 }
 
 const createdUser = {};
@@ -443,19 +443,20 @@ describe('Testing contacts', () => {
         });
     });
 
-    it('should not update without ownerId', () => {
+    it('should not update without contact id', () => {
       return chai.request(app)
         .put(`/contact`)
         .set('token', createdUser.token)
         .send({
-          phone: '06040302010'
+          phone: '06040302010',
+          ownerId: createdUser.id
         })
         .then(res => {
           const result = { ...res.body };
           expect(res.status).to.equal(400);
           expect(result)
             .to.have.property('message')
-            .to.equal('ownerId is required');
+            .to.equal('id is required');
         });
     });
 
@@ -464,13 +465,54 @@ describe('Testing contacts', () => {
         .put(`/contact`)
         .set('token', createdUser.token)
         .send({
+          id: invalidContactId,
           group: 'friends',
           ownerId: createdUser.id,
         })
         .then(res => {
           const result = { ...res.body };
+          expect(res.status).to.equal(404);
+          expect(result)
+            .to.have.property('message')
+            .to.equal('Contact not found! No action taken');
+        });
+    });
+
+    it('should update with all required fields passed', () => {
+      return chai.request(app)
+        .put(`/contact`)
+        .set('token', createdUser.token)
+        .send({
+          id: createdContact1.id,
+          group: 'friends',
+          ownerId: createdUser.id,
+          phone: '07060441943'
+        })
+        .then(res => {
+          const result = { ...res.body };
           expect(res.status).to.equal(200);
-          expect(result).to.have.property('group').to.equal('friends');
+          expect(result)
+            .to.have.property('group')
+            .to.equal('friends');
+        });
+    });
+
+    it('should update with all required fields passed', () => {
+      return chai.request(app)
+        .put(`/contact`)
+        .set('token', createdUser.token)
+        .send({
+          id: createdContact1.id,
+          group: 'friends',
+          ownerId: createdUser.id,
+          phone: '08008008070'
+        })
+        .then(res => {
+          const result = { ...res.body };
+          expect(res.status).to.equal(200);
+          expect(result)
+            .to.have.property('phone')
+            .to.equal('08008008070');
         });
     });
   });
@@ -505,7 +547,7 @@ describe('Testing contacts', () => {
       const contact = { ...contactObj1 };
       delete contact.phone;
       return chai.request(app)
-        .post('/contact')
+        .delete(`/contact/${createdContact1.id}`)
         .set('token', invalidToken)
         .send(contact)
         .then(res => {
