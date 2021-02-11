@@ -1,4 +1,5 @@
 import Joi from 'joi';
+import logger from '../utils/logger'
 
 const email = Joi.string().trim().email().required().messages({ 
   'string.base': `email is required`,
@@ -70,8 +71,9 @@ export const updateContact = Joi.object().keys({
   userId, ownerId, group,
 });
 
+// validate necessary fields
 export default  async (req, res, next) => {
-  const routes = {
+  const mapRoutes = {
     '/auth/signup': signUp,
     '/auth/login': login,
     '/auth/forgotPassword': reset,
@@ -81,15 +83,21 @@ export default  async (req, res, next) => {
   try {
     let validate
     if (req.url === '/contact' && req.method === 'PUT') {
-      validate = await routes.updateContact.validate(req.body, { abortEarly: false });
+      validate = await mapRoutes.updateContact.validate(
+        req.body, { abortEarly: false }
+      );
     } else {
-      validate = await routes[req.url].validate(req.body, { abortEarly: false });
+      validate = await mapRoutes[req.url].validate(
+        req.body, { abortEarly: false }
+      );
     }
     if (validate.error) return res.status(400).json({
       message:  validate.error.details[0].message, 
     });
     return next();
   } catch(err) {
-    console.log(err.error)
+    logger.error('Error occurred while validating user data:');
+		logger.error(err);
+    return res.status(500).json({ message: err.message });
   }
 }

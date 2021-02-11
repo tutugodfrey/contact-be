@@ -1,6 +1,6 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
-import { clearDatabase } from '../helper';
+import { clearDatabase } from '../utils/helper';
 
 const app = require('../server.js');
 const { expect } = chai;
@@ -294,20 +294,6 @@ describe('Testing Auth user', () => {
             .to.equal('password cannot be empty');
         })
     });
-
-    // it('Not log user in without a valid username', () => {
-    //   const user = { ...userLoginObj };
-    //   user.username = 'invalidUsername'
-    //   return chai.request(app)
-    //     .post('/auth/login')
-    //     .send(user)
-    //     .then(res => {
-    //       expect(res.status).to.equal(401);
-    //       expect(res.body)
-    //       .to.have.property('message')
-    //       .to.equal('Auth failed! Please check your username and password');
-    //     })
-    // });  
 
     it('User not login without a valid password', () => {
       const user = { ...userLoginObj };

@@ -1,6 +1,6 @@
 const chai = require('chai');
 const chaiHttp = require('chai-http');
-import { clearDatabase } from '../helper';
+import { clearDatabase } from '../utils/helper';
 
 const app = require('../server.js');
 const { expect } = chai;
@@ -28,6 +28,12 @@ const contactObj2 = {
   ownerId: '1'
 }
 
+const invalidContactId = '6024473f9584281dff9fcd599';
+const invalidToken = 
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwMjQ1MDliN2U1ODI3M' +
+  'jMwYmZmYTY3MiIsIm5hbWUiOiJnb2RmcmV5MTEiLCJ1c2VybmFtZSI6ImpvaG5kb2U' +
+  'xMSIsImVtYWlsIjoiam9obmRvZUBlbWFpbDExLmNvbSIsImlhdCI6MTYxMjk5MjY2N' +
+  'ywiZXhwIjoxNjEzMDc5MDY3fQ.Plu9Wlxp1IG1JTVePDnoaJVVJQejZQdic8S_EskI26g';
 
 describe('Testing contacts', () => {
   before(async () => {
@@ -69,6 +75,21 @@ describe('Testing contacts', () => {
           expect(res.body)
             .to.have.property('message')
             .to.equal('Authentication failed! Invalid token');
+        });
+    });
+
+    it('should not allow to route without a valid token', () => {
+      const contact = { ...contactObj1 };
+      delete contact.phone;
+      return chai.request(app)
+        .post('/contact')
+        .set('token', invalidToken)
+        .send(contact)
+        .then(res => {
+          expect(res.status).to.equal(401);
+          expect(res.body)
+            .to.have.property('message')
+            .to.equal('Authentication failed! User does not exist');
         });
     });
   
@@ -215,7 +236,7 @@ describe('Testing contacts', () => {
         })
     });
 
-    it('Should create if owner exist', () => {
+    it('Should create when group is not specified', () => {
       const contact = { ...contactObj2 };
       contact.ownerId = createdUser.id;
       return chai.request(app)
@@ -235,6 +256,21 @@ describe('Testing contacts', () => {
             .to.equal(createdUser.id);
           expect(res.body).to.have.property('createdAt');
           expect(res.body).to.have.property('updatedAt');
+        })
+    });
+
+    it('Should not create duplicate contact', () => {
+      const contact = { ...contactObj2 };
+      contact.ownerId = createdUser.id;
+      return chai.request(app)
+        .post('/contact')
+        .set('token', createdUser.token)
+        .send(contact)
+        .then(res => {
+          expect(res.status).to.equal(409);
+          expect(res.body)
+            .to.have.property('message')
+            .to.equal('Contact detail already exist');
         })
     });
   });
@@ -264,6 +300,22 @@ describe('Testing contacts', () => {
             .to.equal('Authentication failed! Invalid token');
         });
     });
+
+    it('should not allow to route without a valid token', () => {
+      const contact = { ...contactObj1 };
+      delete contact.phone;
+      return chai.request(app)
+        .post('/contact')
+        .set('token', invalidToken)
+        .send(contact)
+        .then(res => {
+          expect(res.status).to.equal(401);
+          expect(res.body)
+            .to.have.property('message')
+            .to.equal('Authentication failed! User does not exist');
+        });
+    });
+
     it('should return all contact', () => {
       return chai.request(app)
         .get('/contact')
@@ -306,7 +358,36 @@ describe('Testing contacts', () => {
             .to.equal('Authentication failed! Invalid token');
         });
     });
+
+    it('should not allow to route without a valid token', () => {
+      const contact = { ...contactObj1 };
+      delete contact.phone;
+      return chai.request(app)
+        .post('/contact')
+        .set('token', invalidToken)
+        .send(contact)
+        .then(res => {
+          expect(res.status).to.equal(401);
+          expect(res.body)
+            .to.have.property('message')
+            .to.equal('Authentication failed! User does not exist');
+        });
+    });
+
     it('should return all contact', () => {
+      return chai.request(app)
+        .get(`/contact/${invalidContactId}`)
+        .set('token', createdUser.token)
+        .then(res => {
+          const result = { ...res.body };
+          expect(res.status).to.equal(404);
+          expect(result)
+            .to.have.property('message')
+            .to.equal('Contact detail not found');
+        });
+    });
+
+    it('should return contact with given Id', () => {
       return chai.request(app)
         .get(`/contact/${createdContact1.id}`)
         .set('token', createdUser.token)
@@ -344,6 +425,21 @@ describe('Testing contacts', () => {
           expect(result)
             .to.have.property('message')
             .to.equal('Authentication failed! Invalid token');
+        });
+    });
+
+    it('should not allow to route without a valid token', () => {
+      const contact = { ...contactObj1 };
+      delete contact.phone;
+      return chai.request(app)
+        .post('/contact')
+        .set('token', invalidToken)
+        .send(contact)
+        .then(res => {
+          expect(res.status).to.equal(401);
+          expect(res.body)
+            .to.have.property('message')
+            .to.equal('Authentication failed! User does not exist');
         });
     });
 
@@ -402,6 +498,21 @@ describe('Testing contacts', () => {
           expect(result)
             .to.have.property('message')
             .to.equal('Authentication failed! Invalid token');
+        });
+    });
+
+    it('should not allow to route without a valid token', () => {
+      const contact = { ...contactObj1 };
+      delete contact.phone;
+      return chai.request(app)
+        .post('/contact')
+        .set('token', invalidToken)
+        .send(contact)
+        .then(res => {
+          expect(res.status).to.equal(401);
+          expect(res.body)
+            .to.have.property('message')
+            .to.equal('Authentication failed! User does not exist');
         });
     });
 
