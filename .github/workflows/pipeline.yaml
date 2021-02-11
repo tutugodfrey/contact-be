@@ -1,0 +1,37 @@
+name: 'Test Pipeline'
+
+on:
+  push:
+    branches:
+    - main
+  pull_request:
+
+jobs:
+  environment-setup:
+    name: 'Install docker engine'
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:3.4.23
+        ports:
+        - 27017:27017
+  
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: install and build
+      run: |
+        npm install
+        npm run build
+
+    - name: run test
+      run: |
+        npm test
+      env:
+        DATABASE_URL: mongodb://localhost:27017/contact
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
+
+    - name: Thanks
+      run:  echo WORKFLOW IS SUCCESSFUL
